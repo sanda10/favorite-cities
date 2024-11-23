@@ -1,29 +1,29 @@
-// pages/favorites.js
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Box, Heading, Text, VStack, Button, Spinner } from "@chakra-ui/react";
 import Link from "next/link";
+import PropTypes from "prop-types";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Simulează preluarea datelor dintr-un API sau localStorage
-  useEffect(() => {
-    async function fetchFavorites() {
-      try {
-        // Exemplu: Fetch dintr-un API local sau cloud
-        const response = await fetch("/api/favorites");
-        const data = await response.json();
-        setFavorites(data);
-      } catch (error) {
-        console.error("Eroare la încărcarea favoritelor:", error);
-      } finally {
-        setLoading(false);
-      }
+  const fetchFavorites = useCallback(async () => {
+    try {
+      // Exemplu: Fetch dintr-un API local sau cloud
+      const response = await fetch("/api/favorites");
+      const data = await response.json();
+      setFavorites(data);
+    } catch (error) {
+      console.error("Eroare la încărcarea favoritelor:", error);
+    } finally {
+      setLoading(false);
     }
-
-    fetchFavorites();
   }, []);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, [fetchFavorites]);
 
   if (loading) {
     return (
@@ -36,14 +36,12 @@ export default function FavoritesPage() {
 
   return (
     <Box maxW="800px" mx="auto" py={10} px={6}>
-      <Heading as="h1" size="xl" mb={6}>
-        Orașe Favorite
-      </Heading>
+      <Heading size="3xl">Favorites Page</Heading>
       {favorites.length === 0 ? (
-        <Text fontSize="lg" color="gray.600">
-          Nu ai niciun oraș salvat în lista ta de favorite. <br />
+        <Text mt="3.5" bg="purple.500" color="white" p="10px 20px">
+          This is the favorites page <br />
           <Link href="/search" passHref>
-            <Button mt={4} p="10px 20px" colorScheme="teal">
+            <Button mt={4} colorScheme="teal">
               Caută orașe
             </Button>
           </Link>
@@ -65,7 +63,7 @@ export default function FavoritesPage() {
                 Latitudine: {city.latitude}, Longitudine: {city.longitude}
               </Text>
               <Link href={`/city/${city.id}`} passHref>
-                <Button mt={3} p="10px 20px" colorScheme="teal">
+                <Button mt={3} colorScheme="teal">
                   Vezi detalii
                 </Button>
               </Link>
@@ -76,3 +74,7 @@ export default function FavoritesPage() {
     </Box>
   );
 }
+
+FavoritesPage.propTypes = {
+  favorites: PropTypes.array.isRequired,
+};

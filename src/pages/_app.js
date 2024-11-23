@@ -1,10 +1,15 @@
-import { Provider } from "@/components/ui/provider";
-import "@/styles/globals.css";
+import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { SessionProvider } from "next-auth/react";
 
-export default function App({ Component, pageProps }) {
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}) {
   return (
-    <Provider>
-      <Component {...pageProps} />
-    </Provider>
+    <SessionProvider session={session}>
+      <ChakraProvider value={defaultSystem}>
+        <Component {...pageProps} />
+      </ChakraProvider>
+    </SessionProvider>
   );
 }

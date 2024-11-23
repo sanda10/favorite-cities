@@ -30,20 +30,17 @@ export default function Search({ data }) {
           return alert(
             "incorect city name. Please check spelling and try again."
           );
-        setListItems((currentList) => {
-          return [
-            ...currentList,
-            {
-              city: data.results[0].name,
-              country: data.results[0].country,
-              latitude: data.results[0].latitude,
-              longitude: data.results[0].longitude,
-              population: data.results[0].population,
-            },
-          ];
-        });
-        // console.log(data.results[0])
+        setListItems(
+          data.results.map((result) => ({
+            city: result.name,
+            country: result.country,
+            latitude: result.latitude,
+            longitude: result.longitude,
+            population: result.population,
+          }))
+        );
       })
+
       .catch((error) => alert(error));
 
     setInputValue("");
@@ -95,7 +92,11 @@ export default function Search({ data }) {
 
         {listItems.map((item) => {
           return (
-            <Box as="ul" css={listStyle} key={item.city}>
+            <Box
+              as="ul"
+              css={listStyle}
+              key={item.city + item.latitude + item.longitude}
+            >
               <li>City: {item.city}</li>
               <li>Country: {item.country}</li>
               <li>Latitude: {item.latitude}</li>

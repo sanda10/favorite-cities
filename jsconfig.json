@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["./src/*"]
-    }
+      "@entity/*": ["src/entity/*"]
+    },
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }

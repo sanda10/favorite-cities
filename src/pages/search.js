@@ -1,116 +1,113 @@
-import { Button, Container, Heading, Input, Box } from "@chakra-ui/react";
-import MenuBar from "@/components/menuBar";
-import { useEffect, useState } from "react";
-import { Link } from "@chakra-ui/react";
+import { useState } from "react";
+import {
+  Container,
+  Input,
+  List,
+  Heading,
+  Text,
+  Box,
+  Stack,
+  Spinner,
+} from "@chakra-ui/react";
+import Link from "next/link";
 
-const listStyle = {
-  listStyleType: "circle",
-  borderWidth: "1px",
-  listStylePosition: "inside",
-  p: "10px",
-  w: "524px",
-  m: "35px",
-  bg: "purple.300",
-  rounded: "md",
-};
+export default function Search() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-export default function Search({ data }) {
-  const [inputValue, setInputValue] = useState("");
-  const [listItems, setListItems] = useState([]);
+  const handleSearch = async (e) => {
+    const query = e.target.value.trim();
+    setSearchTerm(query);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${inputValue}&count=3&language=en&format=json`
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        //console.log(data.results)
-        if (!data.results)
-          return alert(
-            "incorect city name. Please check spelling and try again."
-          );
-        setListItems(
-          data.results.map((result) => ({
-            city: result.name,
-            country: result.country,
-            latitude: result.latitude,
-            longitude: result.longitude,
-            population: result.population,
-          }))
-        );
-      })
-
-      .catch((error) => alert(error));
-
-    setInputValue("");
-  };
-
-  useEffect(() => {
-    if (listItems.length > 0) {
-      localStorage.setItem("cities", JSON.stringify(listItems));
+    if (!query) {
+      setResults([]);
+      return;
     }
 
-    console.log(listItems);
-  }, [listItems]);
+    const apiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=en&format=json`;
 
-  useEffect(() => {
-    const localValue = localStorage.getItem("cities");
-    if (localValue === null) return;
-    const savedItems = JSON.parse(localValue);
-    setListItems(savedItems);
-  }, []);
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error("Error fetching data");
+      }
+
+      const data = await response.json();
+      setResults(data.results || []);
+    } catch (error) {
+      console.error("Error:", error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <>
-      <MenuBar />
-      <Container p="20px" centerContent="true">
-        <Heading size="3xl" mb="7">
-          Search page
+    <Container
+      p={4}
+      maxW="container.md"
+      bg="orange.50"
+      borderRadius="lg"
+      boxShadow="xl"
+      centerContent
+    >
+      <Box
+        textAlign="center"
+        p={6}
+        borderRadius="md"
+        bg="yellow.100"
+        boxShadow="lg"
+        mb={6}
+      >
+        <Heading size="xl" color="orange.600" mb={4}>
+          Search Cities
         </Heading>
-        <form onSubmit={(e) => handleSubmit(e)}>
-          <label>City name</label>
+        <Stack gap="4">
           <Input
-            value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-            }}
-            placeholder="City name"
-            w="350px"
-            ml="3"
-            _hover={{ borderColor: "purple.500", borderWidth: "3px" }}
+            placeholder="Search for a city..."
+            value={searchTerm}
+            onChange={handleSearch}
+            mb={4}
+            p={4}
+            size="lg"
+            bg="white"
+            borderColor="orange.300"
+            _hover={{ borderColor: "orange.500" }}
           />
+        </Stack>
+      </Box>
 
-          <Button
-            ml="3"
-            p="10px 20px"
-            _hover={{ bg: "purple.500" }}
-            type="submit"
-          >
-            Submit
-          </Button>
-        </form>
-
-        {listItems.map((item) => {
-          return (
-            <Box
-              as="ul"
-              css={listStyle}
-              key={item.city + item.latitude + item.longitude}
-            >
-              <li>City: {item.city}</li>
-              <li>Country: {item.country}</li>
-              <li>Latitude: {item.latitude}</li>
-              <li>Longitude: {item.longitude}</li>
-              <li>Population: {item.population}</li>
-              <li>
-                <Link variant="underline" href={`./cities/${item.city}`}>
-                  Link
+      <Box width="100%" textAlign="left">
+        {loading ? (
+          <Spinner color="orange.500" />
+        ) : results.length > 0 ? (
+          <List.Root spacing={3}>
+            {results.map((result) => (
+              <List.Item
+                key={result.id}
+                border="1px"
+                borderRadius="md"
+                p={2}
+                bg="white"
+                boxShadow="sm"
+              >
+                <Link href={`/cities/${result.id}`} passHref>
+                  <Text
+                    fontWeight="bold"
+                    cursor="pointer"
+                    _hover={{ color: "teal.500" }}
+                  >
+                    {result.name}, {result.country}
+                  </Text>
                 </Link>
-              </li>
-            </Box>
-          );
-        })}
-      </Container>
-    </>
+              </List.Item>
+            ))}
+          </List.Root>
+        ) : (
+          searchTerm && <Text>No results found.</Text>
+        )}
+      </Box>
+    </Container>
   );
 }

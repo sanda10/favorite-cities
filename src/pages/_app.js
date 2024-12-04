@@ -1,15 +1,15 @@
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { SessionProvider } from "next-auth/react";
+import "@/styles/globals.css";
+import { Provider } from "../components/ui/provider";
+import NavBar from "../components/NavBar";
 
-export default function App({
-  Component,
-  pageProps: { session, ...pageProps },
-}) {
+export default function App({ Component, pageProps, session }) {
   return (
     <SessionProvider session={session}>
-      <ChakraProvider value={defaultSystem}>
+      <Provider>
+        <NavBar />
         <Component {...pageProps} />
-      </ChakraProvider>
+      </Provider>
     </SessionProvider>
   );
 }

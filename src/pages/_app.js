@@ -1,5 +1,5 @@
 import { SessionProvider } from "next-auth/react";
-import "@/styles/globals.css";
+
 import { Provider } from "../components/ui/provider";
 import NavBar from "../components/NavBar";
 

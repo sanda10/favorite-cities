@@ -1,4 +1,3 @@
-import Login from "../components/login-btn";
 import {
   Container,
   Box,
@@ -141,7 +140,6 @@ export default function Home() {
             </Button>
           </HStack>
         </VStack>
-        <Login />
       </Box>
 
       <Box

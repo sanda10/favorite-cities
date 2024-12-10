@@ -21,7 +21,9 @@ export default function NavBar() {
         <NextLink href="/favorites-page" passHref>
           <p>Favorites</p>
         </NextLink>
-
+        <NextLink href="/location" passHref>
+          <p>Location</p>
+        </NextLink>
         <div>
           {session ? (
             <Button onClick={() => signOut()} colorScheme="red">

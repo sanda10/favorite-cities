@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -5,24 +6,29 @@ import {
   ListItem,
   ListRoot,
   Text,
+  VStack,
 } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
 
-export default function favoritePage() {
+export default function FavoritesPage() {
   const [favorites, setFavorites] = useState([]);
 
+  // Load favorite cities from API and user location from localStorage on page load
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
         const response = await fetch("/api/favorites");
         if (response.ok) {
-          const data = await response.json();
-          setFavorites(data);
+          const apiFavorites = await response.json();
+          const savedFavorites = JSON.parse(
+            localStorage.getItem("favorites") || "[]"
+          );
+          const combinedFavorites = [...apiFavorites, ...savedFavorites];
+          setFavorites(combinedFavorites);
         } else {
-          console.error("Failed to fetch favorites.");
+          console.error("Failed to fetch favorites from API.");
         }
       } catch (error) {
-        console.error("Error fetching favorites:", error);
+        console.error("Error fetching favorites from API:", error);
       }
     };
 
@@ -46,13 +52,13 @@ export default function favoritePage() {
         boxShadow="lg"
       >
         <Heading size="xl" color="orange.600" mb={4}>
-          Your Favorites Destinations
+          Your Favorite Destinations
         </Heading>
         {favorites.length > 0 ? (
           <ListRoot spacing={3} mt={4} textAlign="left">
-            {favorites.map((favorite) => (
+            {favorites.map((favorite, index) => (
               <ListItem
-                key={favorite.id}
+                key={index}
                 border="1px"
                 borderColor="orange.300"
                 borderRadius="md"
@@ -61,11 +67,23 @@ export default function favoritePage() {
                 _hover={{ bg: "yellow.100", boxShadow: "md" }}
               >
                 <Text fontWeight="bold" color="orange.600">
-                  {favorite.cityName}
+                  {favorite.cityName || favorite.city || "Unknown City"}
                 </Text>
-                <Text fontSize="sm" color="gray.600">
-                  {favorite.country}
-                </Text>
+                {favorite.country && (
+                  <Text fontSize="sm" color="gray.600">
+                    {favorite.country}
+                  </Text>
+                )}
+                {favorite.latitude && favorite.longitude && (
+                  <>
+                    <Text fontSize="sm" color="gray.600">
+                      <strong>Latitude:</strong> {favorite.latitude}
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      <strong>Longitude:</strong> {favorite.longitude}
+                    </Text>
+                  </>
+                )}
               </ListItem>
             ))}
           </ListRoot>

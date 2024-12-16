@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import {
   Box,
+  Button,
   Container,
   Heading,
+  Input,
   ListItem,
   ListRoot,
   Text,
+  Textarea,
   VStack,
 } from "@chakra-ui/react";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState([]);
+  const [reviewInput, setReviewInput] = useState("");
+  const [ratingInput, setRatingInput] = useState(0);
 
   // Load favorite cities from API and user location from localStorage on page load
   useEffect(() => {
@@ -32,8 +37,70 @@ export default function FavoritesPage() {
       }
     };
 
+    const fetchUserLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLocation = {
+              city: "User Location",
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            };
+            setFavorites((prevFavorites) => [...prevFavorites, userLocation]);
+            localStorage.setItem(
+              "favorites",
+              JSON.stringify([
+                ...JSON.parse(localStorage.getItem("favorites") || "[]"),
+                userLocation,
+              ])
+            );
+          },
+          (error) => {
+            console.error("Error getting user location:", error);
+          }
+        );
+      } else {
+        console.error("Geolocation is not supported by this browser.");
+      }
+    };
+
     fetchFavorites();
+    fetchUserLocation();
   }, []);
+
+  const handleAddReview = (index) => {
+    const updatedFavorites = [...favorites];
+    const favorite = updatedFavorites[index];
+    if (!favorite.reviews) {
+      favorite.reviews = [];
+    }
+    favorite.reviews.push({ review: reviewInput, rating: ratingInput });
+    setFavorites(updatedFavorites);
+    localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+    setReviewInput("");
+    setRatingInput(0);
+  };
+
+  const handleShare = (favorite) => {
+    const shareData = {
+      title: "Check out this destination!",
+      text: `Explore ${favorite.cityName || favorite.city || "this location"}!`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      navigator
+        .share(shareData)
+        .then(() => {
+          console.log("Destination shared successfully.");
+        })
+        .catch((error) => {
+          console.error("Error sharing destination:", error);
+        });
+    } else {
+      alert("Sharing is not supported in this browser.");
+    }
+  };
 
   return (
     <Container
@@ -84,6 +151,45 @@ export default function FavoritesPage() {
                     </Text>
                   </>
                 )}
+
+                <Button
+                  mt={2}
+                  colorScheme="blue"
+                  onClick={() => handleShare(favorite)}
+                >
+                  Share this Destination
+                </Button>
+
+                <VStack mt={4} spacing={2} align="stretch">
+                  {favorite.reviews &&
+                    favorite.reviews.map((review, i) => (
+                      <Box key={i} p={2} borderRadius="md" bg="orange.100">
+                        <Text>
+                          <strong>Rating:</strong> {review.rating} / 5
+                        </Text>
+                        <Text>
+                          <strong>Review:</strong> {review.review}
+                        </Text>
+                      </Box>
+                    ))}
+
+                  <Input
+                    placeholder="Write a review"
+                    value={reviewInput}
+                    onChange={(e) => setReviewInput(e.target.value)}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Rating (1-5)"
+                    value={ratingInput}
+                    onChange={(e) => setRatingInput(e.target.value)}
+                    max={5}
+                    min={1}
+                  />
+                  <Button onClick={() => handleAddReview(index)}>
+                    Add Review
+                  </Button>
+                </VStack>
               </ListItem>
             ))}
           </ListRoot>
